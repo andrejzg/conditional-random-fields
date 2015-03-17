@@ -1,0 +1,51 @@
+% Read in train data
+train = tdfread('data/trainSmall.tsv');
+words = cellstr(train.words);
+wordTags = cellstr(train.labels);
+
+% Add the fake START/END wordTags
+words = [' '; words; ' '];
+wordTags = ['START'; wordTags; 'END'];
+
+% Number of tags
+numTags = length(unique(wordTags));
+
+% We want to express our wordTags as numbers
+tagMap = [unique(wordTags) num2cell(1:numTags)'];
+% disp(tagMap)
+%Get tag
+getTag = @(x) find(strcmp(tagMap, x));
+
+
+%We want START=1 and END=length(unique(tags))
+tagMap([1, getTag('START')],1) = tagMap([getTag('START'),1],1);
+tagMap([numTags, getTag('END')],1) = tagMap([getTag('END'),numTags],1);
+
+
+
+tags = zeros(length(wordTags),1);
+
+for i = 1:length(wordTags) 
+    tags(i) = find(strcmp(tagMap, wordTags(i)));
+end
+
+% 0 wordTags indicate the ends of sentences
+% sentenceEnds = find(Y=='0');
+% nSentences = length(sentenceEnds);
+
+% number of feature functions
+nFeatures = 3;
+
+X = zeros(length(train.labels),nFeatures);
+
+for i = 1:length(tags)
+    X(i, 1) = f1(words, tags, i, getTag('LOCATION'), getTag('O'));
+    X(i, 2) = f2(words, tags, i, getTag('LOCATION'), getTag('O'));
+    X(i, 3) = f3(words, tags, i, getTag('LOCATION'), getTag('O'));
+end
+
+% Display results
+header = {'POS' 'WORD' 'f1' 'f2' 'f3' 'TAG' 'NTAG'};
+linenum = (1:length(tags))';
+disp([header; num2cell(linenum) words num2cell(X) wordTags num2cell(tags)]);
+
