@@ -1,7 +1,19 @@
+% POS tag words
+[status, result] = system('java -cp data/stanford-postagger.jar edu.stanford.nlp.tagger.maxent.MaxentTagger -model data/english-left3words-distsim.tagger -textFile data/text.txt -outputFormat tsv -outputFile data/interim.tsv');
+system('sh data/keeny.sh data/interim.tsv data/pos_text.tsv');
+system('rm data/interim.tsv');
+
+str = ['sed -i -e ', '''1 i\word\tPOSTtag\n''', ' data/pos_text.tsv'];
+system(str);
+
+
 % Read in train data
 train = tdfread('data/trainSmall.tsv');
 words = cellstr(train.words);
 wordTags = cellstr(train.labels);
+
+POStags = tdfread('data/pos_text.tsv');
+
 
 % Add the fake START/END wordTags
 words = [' '; words; ' '];
